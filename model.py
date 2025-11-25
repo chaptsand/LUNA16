@@ -52,5 +52,3 @@ class LunaModel(nn.Module):
         logits = self.linear(out)
 
         return logits
-
-
