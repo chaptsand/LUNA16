@@ -55,7 +55,7 @@ def training_loop():
     model = LunaModel().to(device)
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
-    class_weights = torch.tensor([1.0, 8.0]).to(device)
+    class_weights = torch.tensor([1.0, 50.0]).to(device)
     loss_fn = nn.CrossEntropyLoss(weight=class_weights)
 
     print(f"✅ Training Start (TensorBoard logs enabled)")
@@ -66,7 +66,7 @@ def training_loop():
         train_loss = 0.0
 
         for batch_idx, (inputs, labels) in enumerate(train_loader):
-            inputs, labels = inputs.to(device), labels.to(device).long()
+            inputs, labels = inputs.to(device), labels.to(device)
 
             optimizer.zero_grad()
 
@@ -90,7 +90,7 @@ def training_loop():
 
         with torch.no_grad():
             for inputs, labels in val_loader:
-                inputs, labels = inputs.to(device), labels.to(device).long()
+                inputs, labels = inputs.to(device), labels.to(device)
 
                 outputs = model(inputs)
                 loss = loss_fn(outputs, labels)
@@ -111,6 +111,7 @@ def training_loop():
         print(f"\tPrecision: {prec*100:.2f}%")
         print(f"\tF1 Score: {f1:.4f}")
         print(f"\tConfusion Matrix: TP={conf_mat[1,1]}, FN={conf_mat[1,0]}")
+        print(conf_mat)
 
         writer.add_scalar('Loss/Val', avg_val_loss, epoch)
         writer.add_scalar('Metrics/Accuracy', acc, epoch)

@@ -109,7 +109,7 @@ class LunaDataset(Dataset):
         chunk_array = np.clip(chunk_array, MIN_HU, MAX_HU)
         chunk_array = (chunk_array - MIN_HU) / (MAX_HU - MIN_HU)
         chunk_tensor = torch.from_numpy(chunk_array).float().unsqueeze(0)
-        label_tensor = torch.tensor(label, dtype=torch.float32)
+        label_tensor = torch.tensor(label, dtype=torch.long)
 
         return chunk_tensor, label_tensor
 
