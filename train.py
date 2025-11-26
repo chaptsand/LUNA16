@@ -30,13 +30,15 @@ def training_loop():
                            csv_path=CSV_PATH,
                            is_val_set=False,
                            val_stride=10,
-                           cache_dir=CACHE_DIR)
+                           cache_dir=CACHE_DIR,
+                           augmentation=True)
 
     val_ds = LunaDataset(data_dir=DATA_DIR,
                          csv_path=CSV_PATH,
                          is_val_set=True,
                          val_stride=10,
-                         cache_dir=CACHE_DIR)
+                         cache_dir=CACHE_DIR,
+                         augmentation=False)
 
     train_loader = DataLoader(train_ds,
                               batch_size=BATCH_SIZE,

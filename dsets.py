@@ -1,10 +1,12 @@
 import os
-import numpy as np
-import pandas as pd
-import SimpleITK as sitk
+import copy
+import random
 import torch
 from torch.utils.data import Dataset
+import SimpleITK as sitk
 from scipy.ndimage import zoom
+import pandas as pd
+import numpy as np
 
 AIR_HU = -1024
 MIN_HU = -1000
@@ -15,11 +17,12 @@ def world_to_voxel(world_coords_mm, origin_mm, spacing_mm):
     return np.round(voxel_coords).astype(int)
 
 class LunaDataset(Dataset):
-    def __init__(self, data_dir, csv_path, is_val_set=False, val_stride=10, cache_dir="./LUNA16/cache"):
+    def __init__(self, data_dir, csv_path, is_val_set=False, val_stride=10, cache_dir="./LUNA16/cache", augmentation=False):
         self.data_dir = data_dir
         self.csv_path = csv_path
         self.is_val_set = is_val_set
         self.cache_dir = cache_dir
+        self.augmentation = augmentation
 
         if self.cache_dir and not os.path.exists(self.cache_dir):
             os.makedirs(self.cache_dir)
@@ -99,6 +102,9 @@ class LunaDataset(Dataset):
         chunk_array = self.extract_chunk(self.cached_ct_array,
                                          center_zyx,
                                          chunk_size_zyx)
+
+        if self.augmentation:
+            chunk_array = self.augment_chunk(chunk_array)
 
         chunk_array = np.clip(chunk_array, MIN_HU, MAX_HU)
         chunk_array = (chunk_array - MIN_HU) / (MAX_HU - MIN_HU)
@@ -180,5 +186,17 @@ class LunaDataset(Dataset):
             ct_y_start : ct_y_end,
             ct_x_start : ct_x_end
         ]
+
+        return chunk_array
+
+    def augment_chunk(self, chunk_array):
+        for axis in [0, 1, 2]:
+            if random.random() > 0.5:
+                chunk_array = np.flip(chunk_array, axis=axis).copy()
+
+        if random.random() > 0.5:
+            k = random.choice([1, 2, 3])
+            axes = random.choice([(0, 1), (0, 2), (1, 2)])
+            chunk_array = np.rot90(chunk_array, k, axes).copy()
 
         return chunk_array

@@ -1,18 +1,31 @@
 import torch.nn as nn
 
 class LunaBlock(nn.Module):
-    def __init__(self, in_channels, out_channels):
+    def __init__(self, in_channels, conv_channels):
         super().__init__()
 
-        self.conv_block = nn.Sequential(
-            nn.Conv3d(in_channels, out_channels, kernel_size=3, padding=1, bias=False),
-            nn.BatchNorm3d(out_channels),
-            nn.ReLU(inplace=True),
-            nn.MaxPool3d(kernel_size=2, stride=2)
-        )
+        self.conv1 = nn.Conv3d(in_channels, conv_channels, kernel_size=3, padding=1, bias=False)
+        self.bn1 = nn.BatchNorm3d(conv_channels)
+        self.relu1 = nn.ReLU(inplace=True)
 
-    def forward(self, x):
-        return self.conv_block(x)
+        self.conv2 = nn.Conv3d(conv_channels, conv_channels, kernel_size=3, padding=1, bias=False)
+        self.bn2 = nn.BatchNorm3d(conv_channels)
+        self.relu2 = nn.ReLU(inplace=True)
+
+        self.maxpool = nn.MaxPool3d(2, 2)
+
+    def forward(self, input_batch):
+        # Block 1
+        block_out = self.conv1(input_batch)
+        block_out = self.bn1(block_out)
+        block_out = self.relu1(block_out)
+
+        # Block 2
+        block_out = self.conv2(block_out)
+        block_out = self.bn2(block_out)
+        block_out = self.relu2(block_out)
+
+        return self.maxpool(block_out)
 
 
 class LunaModel(nn.Module):
