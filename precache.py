@@ -1,4 +1,3 @@
-import os
 import time
 from dsets import LunaDataset
 from torch.utils.data import DataLoader

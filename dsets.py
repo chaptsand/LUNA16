@@ -80,7 +80,7 @@ class LunaDataset(Dataset):
         world_coords_mm = np.array((candidate_info['coordX'],
                                     candidate_info['coordY'],
                                     candidate_info['coordZ']))
-        
+
         if seriesuid != self.cached_seriesuid:
             ct_array, new_origin_mm, new_spacing_mm = self.get_resampled_ct(seriesuid)
             self.cached_ct_array = ct_array
@@ -91,11 +91,11 @@ class LunaDataset(Dataset):
         voxel_coords_xyz = world_to_voxel(world_coords_mm,
                                           self.cached_origin_mm,
                                           self.cached_spacing_mm)
-        
+
         center_zyx = (voxel_coords_xyz[2], voxel_coords_xyz[1], voxel_coords_xyz[0])
 
         chunk_size_zyx = (48, 48, 48)
-        
+
         chunk_array = self.extract_chunk(self.cached_ct_array,
                                          center_zyx,
                                          chunk_size_zyx)
@@ -110,11 +110,11 @@ class LunaDataset(Dataset):
     def get_resampled_ct(self, seriesuid):
         cache_path = None
         if self.cache_dir:
-            cache_path = os.path.join(self.cache_dir, f"{seriesuid}.npz")
+            cache_path = os.path.join(self.cache_dir, f"{seriesuid}.npy")
             if os.path.exists(cache_path):
                 try:
-                    data = np.load(cache_path)
-                    return data["ct"], data["origin"], data["spacing"]
+                    data = np.load(cache_path, allow_pickle=True)
+                    return data[0], data[1], data[2]
                 except Exception as e:
                     print(f"Loading cache file failed {cache_path}: {e}, Resampling...")
 
@@ -130,20 +130,20 @@ class LunaDataset(Dataset):
         zoom_factor = [spacing_ratio[2], spacing_ratio[1], spacing_ratio[0]]
 
         resampled_ct_array = zoom(original_ct_array, zoom_factor, order=3, mode='nearest')
-    
+
         resampled_ct_array = np.array(resampled_ct_array)
         new_origin_mm = original_origin_mm
         new_spacing_mm = target_spacing_mm
 
         if cache_path:
             try:
-                np.savez_compressed(cache_path, ct=resampled_ct_array,
-                    origin=new_origin_mm, spacing=new_spacing_mm)
+                data_to_save = np.array([resampled_ct_array, new_origin_mm, new_spacing_mm], dtype=object)
+                np.save(cache_path, data_to_save)
             except Exception as e:
                 print(f"Saving cache file failed: {e}")
 
         return resampled_ct_array, new_origin_mm, new_spacing_mm
-    
+
     def extract_chunk(self, ct_array, center_zyx, size_zyx):
         chunk_array = np.full(size_zyx, AIR_HU, dtype=np.float32)
 

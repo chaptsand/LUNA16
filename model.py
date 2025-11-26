@@ -1,10 +1,9 @@
-import torch
 import torch.nn as nn
 
 class LunaBlock(nn.Module):
     def __init__(self, in_channels, out_channels):
         super().__init__()
-        
+
         self.conv_block = nn.Sequential(
             nn.Conv3d(in_channels, out_channels, kernel_size=3, padding=1, bias=False),
             nn.BatchNorm3d(out_channels),
@@ -14,7 +13,7 @@ class LunaBlock(nn.Module):
 
     def forward(self, x):
         return self.conv_block(x)
-    
+
 
 class LunaModel(nn.Module):
     def __init__(self, in_channels=1, conv_channels=8):
@@ -29,7 +28,7 @@ class LunaModel(nn.Module):
         self.linear = nn.Linear(final_flatten_size, 2)
 
         self._init_weights()
-    
+
     def _init_weights(self):
         for m in self.modules():
             if isinstance(m, nn.Conv3d):
@@ -47,7 +46,7 @@ class LunaModel(nn.Module):
 
         # Flatten
         out = out.view(out.size(0), -1) # (B, 1728)
-        
+
         # FC
         logits = self.linear(out)
 
