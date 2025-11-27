@@ -18,6 +18,10 @@ class LunaSegDataset(LunaDataset):
         self.annotations_df = pd.read_csv(self.ann_path)
         self.annotations_dict = self.build_annotations_dict()
 
+        self.candidate_list = self.candidate_list[self.candidate_list['class'] == 1]
+        self.candidate_list = self.candidate_list.reset_index(drop=True)
+        print(f"Dataset Filtered: Keeping only {len(self.candidate_list)} positive nodules.")
+
     def build_annotations_dict(self):
         ann_dict = {}
         for index, row in self.annotations_df.iterrows():
